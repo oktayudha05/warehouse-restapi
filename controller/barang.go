@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 var collBarang = database.Db.Collection("barang")
@@ -35,4 +36,24 @@ func PostBarang(c *gin.Context){
 		return
 	}
 	c.IndentedJSON(http.StatusCreated, gin.H{"message": "berhasil menambahkan barang ke database"})
+}
+
+func GetBarang(c *gin.Context){
+	ctx := c.Request.Context()
+	var storeBarang []model.Barang
+	cur, err := collBarang.Find(ctx, bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal mendapatkan barang dari database"})
+		return
+	}
+	for cur.Next(ctx){
+		var barang model.Barang
+		cur.Decode(&barang)
+		storeBarang = append(storeBarang, barang)
+	}
+	if len(storeBarang) == 0{
+		c.JSON(http.StatusNoContent, gin.H{"message": "data belum ada"})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, storeBarang)
 }
