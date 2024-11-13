@@ -40,3 +40,7 @@ func RegisterKaryawan(c *gin.Context){
 	}
 	c.IndentedJSON(http.StatusOK,gin.H{"message": "berhasil menambah karyawan", "data": postKaryawan})
 }
+
+func LoginKaryawan(c *gin.Context){
+
+}

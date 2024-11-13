@@ -11,6 +11,8 @@ func main(){
 	router := gin.Default()
 
 	router.GET("/", controller.Home)
+	router.POST("/registerKaryawan", controller.RegisterKaryawan)
+	router.POST("/registerPengunjung", controller.RegisterPengunjung)
 	router.POST("/barang", controller.PostBarang)
 	router.GET("/barang", controller.GetBarang)
 
