@@ -5,6 +5,8 @@ import "time"
 type Barang struct {
 	NamaBarang string `json:"nama" validate:"required"`
 	JenisBarang string `json:"jenis" validate:"required"`
+	HargaBarang int `json:"harga"`
+	Jumlah int `json:"jumlah"`
 	TanggalMasukBarang time.Time `json:"tanggal_masuk" validate:"required"`
 }
 

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"time"
 	"warehouse-restapi/database"
 	"warehouse-restapi/model"
 
@@ -25,9 +26,21 @@ func PostBarang(c *gin.Context){
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal bind data"})
 		return
 	}
+	barang.TanggalMasukBarang = time.Now()
 	err = validate.Struct(barang)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "format data salah"})
+		return
+	}
+	fillCariBarang := bson.M{"namabarang": barang.NamaBarang, "jenisbarang": barang.JenisBarang}
+	result := collBarang.FindOne(ctx, fillCariBarang)
+	if result.Err() == nil {
+		_, err = collBarang.UpdateOne(ctx, fillCariBarang, bson.M{"$inc": bson.M{"jumlah": barang.Jumlah}})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal menambahkan jumlah"})
+			return
+		}
+		c.IndentedJSON(http.StatusCreated, gin.H{"data": barang, "message": "berhasil menambahkan jumlah barang ke database"})
 		return
 	}
 	_, err = collBarang.InsertOne(ctx, barang)
@@ -35,7 +48,7 @@ func PostBarang(c *gin.Context){
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal memasukan barang ke database"})
 		return
 	}
-	c.IndentedJSON(http.StatusCreated, gin.H{"message": "berhasil menambahkan barang ke database"})
+	c.IndentedJSON(http.StatusCreated, gin.H{"data": barang, "message": "berhasil menambahkan barang ke database"})
 }
 
 func GetBarang(c *gin.Context){
