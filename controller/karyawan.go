@@ -3,10 +3,12 @@ package controller
 import (
 	"net/http"
 	"warehouse-restapi/database"
+	"warehouse-restapi/middleware"
 	"warehouse-restapi/model"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var collKaryawan = database.Db.Collection("karyawan")
@@ -42,5 +44,32 @@ func RegisterKaryawan(c *gin.Context){
 }
 
 func LoginKaryawan(c *gin.Context){
-
+	ctx := c.Request.Context()
+	var reqKaryawan model.Karyawan
+	err := c.BindJSON(&reqKaryawan)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "gagal bind reques data"})
+		return
+	}
+	var karyawan model.Karyawan
+	err = collKaryawan.FindOne(ctx, bson.M{"username": reqKaryawan.Username, "password": reqKaryawan.Password}).Decode(&karyawan)
+	if err != nil {
+		if err == mongo.ErrNoDocuments{
+			c.JSON(http.StatusBadRequest, gin.H{"message": "akun tidak ditemukan"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal mendapatkan user"})
+		return
+	}
+	token, err := middleware.GenerateJwt(karyawan.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal mendapatkan token"})
+		return
+	}
+	karyawanRes := model.KaryawanRes{
+		NamaKaryawan: karyawan.NamaKaryawan,
+		Username: karyawan.Username,
+		Jabatan: karyawan.Jabatan,
+	}
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "berhasil login sebagai " + karyawan.NamaKaryawan, "token": token, "data": karyawanRes})
 }

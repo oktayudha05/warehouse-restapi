@@ -16,6 +16,11 @@ type Karyawan struct {
 	Password string `json:"password" validate:"required"`
 	Jabatan string `json:"jabatan" validate:"required"`
 }
+type KaryawanRes struct {
+	NamaKaryawan string `json:"nama"`
+	Username      string `json:"username"`
+	Jabatan       string `json:"jabatan"`
+}
 
 type Pnegunjung struct {
 	Username string `json:"username" validate:"required"`
