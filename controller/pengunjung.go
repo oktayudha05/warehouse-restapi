@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"warehouse-restapi/database"
+	"warehouse-restapi/middleware"
 	"warehouse-restapi/model"
 
 	"github.com/gin-gonic/gin"
@@ -82,4 +83,13 @@ func LoginPengunjung(c *gin.Context){
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal mendapatkan akun"})
 		return
 	}
+	token, err := middleware.GenerateJwt(pengunjung.Username, "pengunjung")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal mendapatkan token"})
+		return
+	}
+	pengunjungRes := model.PengunjungRes{
+		Username: pengunjung.Username,
+	}
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "berhasil login sebagai " + pengunjung.Username, "token": token, "data": pengunjungRes})
 }

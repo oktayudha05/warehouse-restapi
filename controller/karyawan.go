@@ -41,7 +41,7 @@ func RegisterKaryawan(c *gin.Context){
 		}
 		checkUsernameCh <- nil
 	}()
-	
+
 	validateErr := <- validateCh
 	checkUsernameErr := <- checkUsernameCh
 	if validateErr != nil{
@@ -83,7 +83,7 @@ func LoginKaryawan(c *gin.Context){
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal mendapatkan user"})
 		return
 	}
-	token, err := middleware.GenerateJwt(karyawan.Username)
+	token, err := middleware.GenerateJwt(karyawan.Username, "karyawan")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal mendapatkan token"})
 		return

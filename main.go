@@ -14,8 +14,9 @@ func main(){
 	router.POST("/registerKaryawan", controller.RegisterKaryawan)
 	router.POST("/loginKaryawan", controller.LoginKaryawan)
 	router.POST("/registerPengunjung", controller.RegisterPengunjung)
-	router.POST("/barang", controller.PostBarang)
-	router.GET("/barang", middleware.MiddlewareJwt(), controller.GetBarang)
+	router.POST("/loginPengunjung", controller.LoginPengunjung)
+	router.POST("/barang",middleware.JwtAndAuthorization("karyawan"), controller.PostBarang)
+	router.GET("/barang", middleware.JwtAndAuthorization(), controller.GetBarang)
 
 	router.Run(":3000")
 }

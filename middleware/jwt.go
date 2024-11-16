@@ -12,6 +12,7 @@ import (
 
 type Claims struct{
 	Username string `json:"username"`
+	Role string `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -25,10 +26,11 @@ func init(){
 	jwtKey = []byte(secretJWT)
 }
 
-func GenerateJwt(username string)(string, error){
+func GenerateJwt(username string, role string)(string, error){
 	waktuKadaluwarsa := time.Now().Add(30*time.Minute)
 	claims := &Claims{
 		Username: username,
+		Role: role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(waktuKadaluwarsa),
 		},
@@ -41,7 +43,7 @@ func GenerateJwt(username string)(string, error){
 	return tokenString, nil
 }
 
-func MiddlewareJwt()gin.HandlerFunc{
+func JwtAndAuthorization(roles... string)gin.HandlerFunc{
 	return func (c *gin.Context){
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == ""{
@@ -60,6 +62,21 @@ func MiddlewareJwt()gin.HandlerFunc{
 			return
 		}
 		c.Set("username", claims.Username)
+		c.Set("role", claims.Role)
+		if len(roles) > 0 {
+			valid := false
+			for _, role := range roles{
+				if claims.Role == role{
+					valid = true
+					break
+				}
+			}
+			if !valid {
+				c.JSON(http.StatusForbidden, gin.H{"message": "tidak memiliki akses untuk operasi ini"})
+				c.Abort()
+				return
+			}
+		}
 		c.Next()
 	}
 }
