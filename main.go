@@ -11,12 +11,22 @@ func main(){
 	router := gin.Default()
 
 	router.GET("/", controller.Home)
-	router.POST("/registerKaryawan", controller.RegisterKaryawan)
-	router.POST("/loginKaryawan", controller.LoginKaryawan)
-	router.POST("/registerPengunjung", controller.RegisterPengunjung)
-	router.POST("/loginPengunjung", controller.LoginPengunjung)
-	router.POST("/barang",middleware.JwtAndAuthorization("karyawan"), controller.PostBarang)
-	router.GET("/barang", middleware.JwtAndAuthorization(), controller.GetBarang)
+
+	karyawan := router.Group("/karyawan")
+	{
+		karyawan.POST("/register", controller.RegisterKaryawan)
+		karyawan.POST("/login", controller.LoginKaryawan)
+	}
+	pengunjung := router.Group("/pengunjung")
+	{
+		pengunjung.POST("/register", controller.RegisterPengunjung)
+		pengunjung.POST("/login", controller.LoginPengunjung)
+	}
+	barang := router.Group("/")
+	{
+		barang.POST("/barang",middleware.JwtAndAuthorization("karyawan"), controller.PostBarang)
+		barang.GET("/barang", middleware.JwtAndAuthorization(), controller.GetBarang)
+	}
 
 	router.Run(":3000")
 }
