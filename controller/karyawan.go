@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"warehouse-restapi/database"
 	"warehouse-restapi/middleware"
@@ -21,20 +22,41 @@ func RegisterKaryawan(c *gin.Context){
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal bind data"})
 		return
 	}
-	err = validate.Struct(postKaryawan)
-	if err != nil {
+
+	validateCh := make(chan error)
+	checkUsernameCh := make(chan error)
+	go func(){
+		err := validate.Struct(postKaryawan)
+		validateCh <- err
+	}()
+	go func(){
+		count, err := collKaryawan.CountDocuments(ctx, bson.M{"username": postKaryawan.Username})
+		if err != nil{
+			checkUsernameCh <- err
+			return
+		} 
+		if count > 0{
+			checkUsernameCh <- fmt.Errorf("username sudah ada")
+			return
+		}
+		checkUsernameCh <- nil
+	}()
+	
+	validateErr := <- validateCh
+	checkUsernameErr := <- checkUsernameCh
+	if validateErr != nil{
 		c.JSON(http.StatusBadRequest, gin.H{"message": "format data salah"})
 		return
 	}
-	count, err := collKaryawan.CountDocuments(ctx, bson.M{"username": postKaryawan.Username})
-	if err != nil {
+	if checkUsernameErr != nil {
+		if checkUsernameErr.Error() == "username sudah ada"{
+			c.JSON(http.StatusConflict, gin.H{"message": "username sudah ada"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal mencari username"})
 		return
 	}
-	if count > 0{
-		c.JSON(http.StatusConflict, gin.H{"message": "username sudah ada"})
-		return
-	}
+
 	_, err = collKaryawan.InsertOne(ctx, postKaryawan)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal post data ke database"})

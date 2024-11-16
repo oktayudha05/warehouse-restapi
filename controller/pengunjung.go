@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"warehouse-restapi/database"
 	"warehouse-restapi/model"
@@ -20,18 +21,43 @@ func RegisterPengunjung(c *gin.Context){
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal bind data"})
 		return
 	}
-	err = validate.Struct(postData)
-	if err != nil {
+
+	validateCh := make(chan error)
+	checkUsernameCh := make(chan error)
+	go func(){
+		err := validate.Struct(postData)
+		validateCh <- err
+	}()
+	go func(){
+		count, err := collPengunjung.CountDocuments(ctx, bson.M{"username": postData.Username})
+		if err != nil {
+			checkUsernameCh <- err
+			return
+		}
+		if count > 0 {
+			checkUsernameCh <- fmt.Errorf("username sudah ada")
+			return
+		}
+		checkUsernameCh <- nil
+	}()
+	validateErr := <- validateCh
+	checkUsernameErr := <- checkUsernameCh
+	if validateErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "data tidak sesuai format"})
 		return
 	}
-	count, err := collPengunjung.CountDocuments(ctx, bson.M{"username": postData.Username})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "error ketika mencari data"})
+	if checkUsernameErr != nil {
+		if checkUsernameErr.Error() == "username sudah ada"{
+			c.JSON(http.StatusConflict, gin.H{"message": "username sudah digunakan"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal mencari username"})
 		return
 	}
-	if count > 0 {
-		c.JSON(http.StatusFound, gin.H{"message": "username sudah digunakan"})
+
+	_, err = collPengunjung.InsertOne(ctx, postData)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal mendaftarkan akun"})
 		return
 	}
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "berhasil melakukan register akun", "data": postData})
