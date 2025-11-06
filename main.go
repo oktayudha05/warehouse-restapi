@@ -22,10 +22,12 @@ func main(){
 		pengunjung.POST("/register", controller.RegisterPengunjung)
 		pengunjung.POST("/login", controller.LoginPengunjung)
 	}
-	barang := router.Group("/")
+	barang := router.Group("/barang")
 	{
-		barang.POST("/barang",middleware.JwtAndAuthorization("karyawan"), controller.PostBarang)
-		barang.GET("/barang", middleware.JwtAndAuthorization(), controller.GetBarang)
+		barang.GET("/", middleware.JwtAndAuthorization(), controller.GetBarang)
+		barang.PUT("/", middleware.JwtAndAuthorization("karyawan"), controller.UpdateBarang)
+		barang.POST("/", middleware.JwtAndAuthorization("karyawan"), controller.PostBarang)
+		barang.DELETE("/", middleware.JwtAndAuthorization("karyawan"), controller.DeleteBarang)
 	}
 
 	router.Run(":3000")

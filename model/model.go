@@ -10,6 +10,13 @@ type Barang struct {
 	TanggalMasukBarang time.Time `json:"tanggal_masuk" validate:"required"`
 }
 
+type UpdateBarang struct {
+	NamaBarang *string `json:"nama"`
+	JenisBarang *string `json:"jenis"`
+	HargaBarang *int `json:"harga"`
+	Jumlah *int `json:"jumlah"`
+}
+
 type Karyawan struct {
 	NamaKaryawan string `json:"nama" validate:"required"`
 	Username string `json:"username" validate:"required"`
@@ -18,8 +25,8 @@ type Karyawan struct {
 }
 type KaryawanRes struct {
 	NamaKaryawan string `json:"nama"`
-	Username      string `json:"username"`
-	Jabatan       string `json:"jabatan"`
+	Username string `json:"username"`
+	Jabatan string `json:"jabatan"`
 }
 
 type Pnegunjung struct {
@@ -27,5 +34,5 @@ type Pnegunjung struct {
 	Password string `json:"password" validate:"required"`
 }
 type PengunjungRes struct {
-	Username      string `json:"username"`
+	Username string `json:"username"`
 }

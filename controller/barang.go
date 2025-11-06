@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 	"warehouse-restapi/database"
 	"warehouse-restapi/model"
@@ -35,12 +36,13 @@ func PostBarang(c *gin.Context){
 	fillCariBarang := bson.M{"namabarang": barang.NamaBarang, "jenisbarang": barang.JenisBarang}
 	result := collBarang.FindOne(ctx, fillCariBarang)
 	if result.Err() == nil {
-		_, err = collBarang.UpdateOne(ctx, fillCariBarang, bson.M{"$inc": bson.M{"jumlah": barang.Jumlah}})
+		barang.TanggalMasukBarang = time.Now()
+		_, err = collBarang.UpdateOne(ctx, fillCariBarang, bson.M{"$inc": bson.M{"jumlah": barang.Jumlah}, "$set": bson.M{"tanggalmasukbarang": barang.TanggalMasukBarang},})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal menambahkan jumlah"})
 			return
 		}
-		c.IndentedJSON(http.StatusCreated, gin.H{"data": barang, "message": "berhasil menambahkan jumlah barang ke database"})
+		c.IndentedJSON(http.StatusCreated, gin.H{"data": barang, "message": "berhasil menambahkan " + strconv.FormatInt(int64(barang.Jumlah), 10) + " " + barang.NamaBarang + " ke database"})
 		return
 	}
 	_, err = collBarang.InsertOne(ctx, barang)
@@ -69,4 +71,43 @@ func GetBarang(c *gin.Context){
 		return
 	}
 	c.IndentedJSON(http.StatusOK, storeBarang)
+}
+
+func DeleteBarang(c *gin.Context){
+	ctx := c.Request.Context()
+	var reqBarang model.Barang
+	err := c.BindJSON(&reqBarang)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "gagal bind data"})
+		return
+	}
+	filter := bson.M{"namabarang": reqBarang.NamaBarang}
+	_, err = collBarang.DeleteOne(ctx, filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal menghapus data"})
+		return
+	}
+}
+
+func UpdateBarang(c *gin.Context){
+	ctx := c.Request.Context()
+	var reqBarang model.Barang
+	err := c.BindJSON(&reqBarang)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "gagal bind data"})
+		return
+	}
+	filter := bson.M{"namabarang": reqBarang.NamaBarang}
+	update := bson.M{"$set": bson.M{
+		"jenisbarang":       reqBarang.JenisBarang,
+		"harga":             reqBarang.HargaBarang,
+		"jumlah":            reqBarang.Jumlah,
+		"tanggalmasukbarang": time.Now(),
+	}}
+	_, err = collBarang.UpdateOne(ctx, filter, update)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "gagal mengupdate data"})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, gin.H{"data": reqBarang, "message": "berhasil mengupdate data barang"})
 }
