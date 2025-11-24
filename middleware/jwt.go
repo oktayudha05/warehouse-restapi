@@ -45,6 +45,12 @@ func GenerateJwt(username string, role string)(string, error){
 
 func JwtAndAuthorization(roles... string)gin.HandlerFunc{
 	return func (c *gin.Context){
+		if c.Request.Method == "OPTIONS" {
+			// Biarkan request OPTIONS melewati middleware JWT
+			// Middleware CORS global harus menanganinya
+			c.Next()
+			return
+		}
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == ""{
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "tidak ada token"})
