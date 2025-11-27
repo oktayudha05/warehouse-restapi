@@ -25,7 +25,7 @@ func main(){
 
 	karyawan := router.Group("/karyawan")
 	{
-		karyawan.POST("/register", controller.RegisterKaryawan)
+		karyawan.POST("/register", middleware.JwtAndAuthorization("karyawan"), controller.RegisterKaryawan)
 		karyawan.POST("/login", controller.LoginKaryawan)
 	}
 	pengunjung := router.Group("/pengunjung")
