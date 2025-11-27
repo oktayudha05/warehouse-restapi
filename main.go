@@ -36,9 +36,11 @@ func main(){
 	barang := router.Group("/barang")
 	{
 		barang.GET("/", middleware.JwtAndAuthorization(), controller.GetBarang)
-		barang.PUT("/", middleware.JwtAndAuthorization("karyawan"), controller.UpdateBarang)
 		barang.POST("/", middleware.JwtAndAuthorization("karyawan"), controller.PostBarang)
-		barang.DELETE("/", middleware.JwtAndAuthorization("karyawan"), controller.DeleteBarang)
+		barang.PUT("/:id", middleware.JwtAndAuthorization("karyawan"), controller.UpdateBarang)
+		barang.DELETE("/:id", middleware.JwtAndAuthorization("karyawan"), controller.DeleteBarang)
+		barang.POST("/:id/tambah-stok", middleware.JwtAndAuthorization("karyawan"), controller.TambahStokBarang)
+		barang.POST("/:id/kurangi-stok", middleware.JwtAndAuthorization("karyawan"), controller.KurangiStokBarang)
 	}
 
 	router.Run("0.0.0.0:3333")
