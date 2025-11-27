@@ -3,11 +3,11 @@ package model
 import "time"
 
 type Barang struct {
-	NamaBarang string `json:"nama" validate:"required"`
-	JenisBarang string `json:"jenis" validate:"required"`
-	HargaBarang int `json:"harga"`
-	Jumlah int `json:"jumlah"`
-	TanggalMasukBarang time.Time `json:"tanggal_masuk" validate:"required"`
+	NamaBarang string `json:"nama" bson:"namabarang" validate:"required"`
+	JenisBarang string `json:"jenis" bson:"jenisbarang" validate:"required"`
+	HargaBarang int `json:"harga" bson:"hargabarang"`
+	Jumlah int `json:"jumlah" bson:"jumlah"`
+	TanggalMasukBarang time.Time `json:"tanggal_masuk" bson:"tanggalmasukbarang" validate:"required"`
 }
 
 type UpdateBarang struct {

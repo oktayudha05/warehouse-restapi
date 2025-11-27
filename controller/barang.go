@@ -100,7 +100,7 @@ func UpdateBarang(c *gin.Context){
 	filter := bson.M{"namabarang": reqBarang.NamaBarang}
 	update := bson.M{"$set": bson.M{
 		"jenisbarang":       reqBarang.JenisBarang,
-		"harga":             reqBarang.HargaBarang,
+		"hargabarang":             reqBarang.HargaBarang,
 		"jumlah":            reqBarang.Jumlah,
 		"tanggalmasukbarang": time.Now(),
 	}}
